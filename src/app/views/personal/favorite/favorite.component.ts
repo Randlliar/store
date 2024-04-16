@@ -5,6 +5,7 @@ import {DefaultResponseType} from "../../../../types/default-response.type";
 import {environment} from "../../../../environments/environment";
 import {CartType} from "../../../../types/cart.type";
 import {CartService} from "../../../shared/services/cart.service";
+import {ProductType} from "../../../../types/product.type";
 
 @Component({
   selector: 'app-favorite',
@@ -23,13 +24,50 @@ export class FavoriteComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.favoriteService.getFavorites()
-      .subscribe((data: FavoriteType[] | DefaultResponseType) => {
-        if ((data as DefaultResponseType).error !== undefined) {
-          const err = (data as DefaultResponseType).message;
-          throw new Error(err);
+
+    this.cartService.getCart()
+      .subscribe((cartData: CartType | DefaultResponseType) => {
+        if ((cartData as DefaultResponseType).error !== undefined) {
+          throw new Error((cartData as DefaultResponseType).message);
         }
-        this.products = data as FavoriteType[];
+
+        const cartDataResponse = cartData as CartType;
+
+        this.favoriteService.getFavorites()
+          .subscribe((data: FavoriteType[] | DefaultResponseType) => {
+            if ((data as DefaultResponseType).error !== undefined) {
+              const err = (data as DefaultResponseType).message;
+              throw new Error(err);
+            }
+            this.products = data as FavoriteType[];
+
+            this.cartService.getCart()
+              .subscribe((productInCart: CartType | DefaultResponseType) => {
+                if ((productInCart as DefaultResponseType).error !== undefined) {
+                  throw new Error((productInCart as DefaultResponseType).message);
+                }
+
+                const cartData = productInCart as CartType;
+                if (cartData) {
+                  console.log(cartData)
+                  const cartProducts = cartData.items;
+                  this.products = this.products.map(item => {
+                    const index = cartProducts.findIndex(product => {
+                      return item.id === product.product.id;
+                    })
+                    if (index !== -1) {
+                      return {
+                        ...item,
+                        countInCart: cartProducts[index].quantity
+                      }
+                    }
+                    return item;
+                  })
+                }
+              });
+
+
+          });
       });
   }
 
@@ -64,7 +102,7 @@ export class FavoriteComponent implements OnInit {
         }
 
         const currentProductIndex = this.products.findIndex(product => product.id === id);
-          this.products[currentProductIndex].countInCart = 0;
+        this.products[currentProductIndex].countInCart = 0;
         this.count = 1;
       })
   }
@@ -83,7 +121,7 @@ export class FavoriteComponent implements OnInit {
             throw new Error((data as DefaultResponseType).message);
           }
 
-        this.products[currentProductIndex].countInCart = this.count;
+          this.products[currentProductIndex].countInCart = this.count;
         })
     }
   }

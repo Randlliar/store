@@ -20,7 +20,7 @@
         </button>
         <div class="favorite-info-params-count" *ngIf="product.countInCart">
           <span>Количество: </span>
-          <count-selector [count]="count" (onCountChange)="updateCount($event, product.id)"></count-selector>
+          <count-selector [count]="product.countInCart" (onCountChange)="updateCount($event, product.id)"></count-selector>
         </div>
 
 
