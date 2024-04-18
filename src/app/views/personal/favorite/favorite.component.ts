@@ -24,15 +24,6 @@ export class FavoriteComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
-    this.cartService.getCart()
-      .subscribe((cartData: CartType | DefaultResponseType) => {
-        if ((cartData as DefaultResponseType).error !== undefined) {
-          throw new Error((cartData as DefaultResponseType).message);
-        }
-
-        const cartDataResponse = cartData as CartType;
-
         this.favoriteService.getFavorites()
           .subscribe((data: FavoriteType[] | DefaultResponseType) => {
             if ((data as DefaultResponseType).error !== undefined) {
@@ -68,7 +59,6 @@ export class FavoriteComponent implements OnInit {
 
 
           });
-      });
   }
 
   removeFromFavorites(id: string) {
